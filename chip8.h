@@ -8,7 +8,7 @@
 #define GRAPHIC_SIZE (64 * 32)
 #define KEY_SIZE 16
 
-typdef struct {
+tpdef struct {
     uint8_t opcode;
     uint8_t memory[MEM_SIZE];
     uint8_t V[GENERAL_REG]; // The VF register should not be used by any program, as it is used as a flag by some instructions.
@@ -21,5 +21,7 @@ typdef struct {
     uint8_t graphic[GRAPHIC_SIZE];
     uint16_t key[KEY_SIZE]
 } Chip8;
+
+Chip8 initalize_chip8();
 
 #endif
