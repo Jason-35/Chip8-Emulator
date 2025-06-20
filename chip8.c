@@ -123,30 +123,64 @@ void emulateCycle(Chip8 *ch8) {
             ch8 -> PC += 2;
             break;
         case 0x0007:
+            x = (opcode & 0x0F00) >> 8;
+            kk = opcode & 0x00FF;
+            ch8 -> V[x] += kk;
+            ch8 -> PC += 2;
             break;
         case 0x0008:
             // want the 4th instruction so mask the first 12 bits
             uint8_t instr_4 = opcode & 0x000F;
+            x = (opcode & 0x0F00) >> 8;
+            y = opcode & 0x00F0 >> 4;
             switch (instr_4) {
                 case 0x0000:
+                    ch8 -> V[x] = ch8 -> V[y];
                     break;
                 case 0x0001:
+                    ch8 -> V[x] |= ch8 -> V[y]; 
                     break;
                 case 0x0002:
+                    ch8 -> V[x] &= ch8 -> V[y];
                     break;
                 case 0x0003:
+                    ch8 -> V[x] ^= ch8 -> V[y];
                     break;
                 case 0x0004:
+                    uint16_t add_sum = ch8 -> V[x] + ch8 -> V[y];
+                    if (add_sum > 255) {
+                        ch8 -> V[0x000F] = 1;
+                    } else {
+                        ch8 -> V[0x000F] = 0;
+                    }
+                    ch8 -> V[x] += ch8 -> V[y];
                     break;
                 case 0x0005:
+                    if (ch8 -> V[x] > ch8 -> V[y]) {
+                        ch8 -> V[0x000F] = 1;
+                    } else {
+                        ch8 -> V[0x000F] = 0;
+                    }
+                    ch8 -> V[x] -= ch8 -> V[y];
                     break;
                 case 0x0006:
+                    ch8 -> V[0x000F] = ch8 -> V[x] & 1;
+                    ch8 -> V[x] >>= 1;
                     break;
                 case 0x0007:
+                    if (ch8 -> V[x] < ch8 -> V[y]) {
+                        ch8 -> V[0x000F] = 1;
+                    } else {
+                        ch8 -> V[0x000F] = 0;
+                    }
+                    ch8 -> V[x] = ch8 -> V[y] - ch8 -> V[x];
                     break;
                 case 0x000E:
+                    ch8 -> V[0x000F] = ch8 -> V[x] >> 7;
+                    ch8 -> V[x] <<= 1;
                     break;
             };
+            ch8 -> PC += 2;
             break;
         case 0x0009:
             break;
