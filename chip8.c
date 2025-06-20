@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "chip8.h"
-
+#include <stdint.h>
 
 unsigned char chip8_fontset[80] =
 { 
@@ -67,40 +67,96 @@ void emulateCycle(Chip8 *ch8) {
     // decode opcode
     // opcode >> 12 gets the first 4 bits out of the 16 bit
     // 0x1 is actually 0x0001.
-    switch(ch8->opcode >> 12) {
-        case 0x0:
+    uint8_t opcode = ch8 -> opcode;
+    switch (opcode >> 12) {
+        // there is only two instructions for 0xxx
+        case 0x0000:
+            if (opcode == 0x00E0) {
+                ;
+            } else {
+                // opcode 0x00EE
+                ;
+            }
             break;
-        case 0x1:
+        case 0x0001:
             break;
-        case 0x2:
+        case 0x0002:
             break;
-        case 0x3:
+        case 0x0003:
             break;
-        case 0x4:
+        case 0x0004:
             break;
-        case 0x5:
+        case 0x0005:
             break;
-        case 0x6:
+        case 0x0006:
             break;
-        case 0x7:
+        case 0x0007:
             break;
-        case 0x8:
+        case 0x0008:
+            // want the 4th instruction so mask the first 12 bits
+            uint8_t instr_4 = opcode & 0x000F;
+            switch (instr_4) {
+                case 0x0000:
+                    break;
+                case 0x0001:
+                    break;
+                case 0x0002:
+                    break;
+                case 0x0003:
+                    break;
+                case 0x0004:
+                    break;
+                case 0x0005:
+                    break;
+                case 0x0006:
+                    break;
+                case 0x0007:
+                    break;
+                case 0x000E:
+                    break;
+            };
             break;
-        case 0x9:
+        case 0x0009:
             break;
-        case 0xA:
+        case 0x000A:
             break;
-        case 0xB:
+        case 0x000B:
             break;
-        case 0xC:
+        case 0x000C:
             break;
-        case 0xD:
+        case 0x000D:
             break;
-        case 0xE:
+        case 0x000E:
+            if ((opcode & 0x000F) == 0x000E) {
+                ;
+            } else {
+                // 0xExA1
+                ;
+            }
             break;
-        case 0xF:
+        case 0x000F:
+            switch (opcode & 0x00FF) {
+                case 0x0007:
+                    break;
+                case 0x000A:
+                    break;
+                case 0x0015:
+                    break;
+                case 0x0018:
+                    break;
+                case 0x001E:
+                    break;
+                case 0x0029:
+                    break;
+                case 0x0033:
+                    break;
+                case 0x0055:
+                    break;
+                case 0x0065:
+                    break;
+            };
             break; 
-    }
+    };
     // execute opcode
     // update timer
 
