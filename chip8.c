@@ -68,37 +68,37 @@ void emulateCycle(Chip8 *ch8) {
     // opcode >> 12 gets the first 4 bits out of the 16 bit
     // 0x1 is actually 0x0001.
     switch(ch8->opcode >> 12) {
-        case 0x0;
+        case 0x0:
             break;
-        case 0x1;
+        case 0x1:
             break;
-        case 0x2;
+        case 0x2:
             break;
-        case 0x3;
+        case 0x3:
             break;
-        case 0x4;
+        case 0x4:
             break;
-        case 0x5;
+        case 0x5:
             break;
-        case 0x6;
+        case 0x6:
             break;
-        case 0x7;
+        case 0x7:
             break;
-        case 0x8;
+        case 0x8:
             break;
-        case 0x9;
+        case 0x9:
             break;
-        case 0xA;
+        case 0xA:
             break;
-        case 0xB;
+        case 0xB:
             break;
-        case 0xC;
+        case 0xC:
             break;
-        case 0xD;
+        case 0xD:
             break;
-        case 0xE;
+        case 0xE:
             break;
-        case 0xF;
+        case 0xF:
             break; 
     }
     // execute opcode
