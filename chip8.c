@@ -42,5 +42,7 @@ Chip8 initalize_chip8() {
     for (int i = 0; i < GRAPHIC_SIZE; i++) {
         ch8.graphic[i] = 0;
     }
+
+    return ch8;     
 } 
 
