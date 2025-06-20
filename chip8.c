@@ -49,6 +49,10 @@ Chip8 initalize_chip8() {
         ch8.graphic[i] = 0;
     }
 
+    for (int i = 0; i < 80; i++) {
+        chip8.memory[i] = chip8_fontset[i];
+    }
+
     return ch8;     
 } 
 
