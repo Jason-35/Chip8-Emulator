@@ -50,9 +50,61 @@ Chip8 initalize_chip8() {
     }
 
     for (int i = 0; i < 80; i++) {
-        chip8.memory[i] = chip8_fontset[i];
+        ch8.memory[i] = chip8_fontset[i];
     }
 
     return ch8;     
-} 
+}
+
+
+
+// void for now change if needed.
+void emulateCycle(Chip8 *ch8) {
+    // fetch opcode
+    ch8->opcode = ch8->memory[ch8->PC] << 8 | ch8->memory[ch8->PC + 1];
+    ch8->PC += 2;
+
+    // decode opcode
+    // opcode >> 12 gets the first 4 bits out of the 16 bit
+    // 0x1 is actually 0x0001.
+    switch(ch8->opcode >> 12) {
+        case 0x0;
+            break;
+        case 0x1;
+            break;
+        case 0x2;
+            break;
+        case 0x3;
+            break;
+        case 0x4;
+            break;
+        case 0x5;
+            break;
+        case 0x6;
+            break;
+        case 0x7;
+            break;
+        case 0x8;
+            break;
+        case 0x9;
+            break;
+        case 0xA;
+            break;
+        case 0xB;
+            break;
+        case 0xC;
+            break;
+        case 0xD;
+            break;
+        case 0xE;
+            break;
+        case 0xF;
+            break; 
+    }
+    // execute opcode
+    // update timer
+
+}
+
+
 
