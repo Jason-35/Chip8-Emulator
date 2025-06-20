@@ -23,5 +23,6 @@ typedef struct {
 } Chip8;
 
 Chip8 initalize_chip8();
+void emulateCycle(Chip8 *ch8);
 
 #endif
