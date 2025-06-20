@@ -68,27 +68,59 @@ void emulateCycle(Chip8 *ch8) {
     // opcode >> 12 gets the first 4 bits out of the 16 bit
     // 0x1 is actually 0x0001.
     uint8_t opcode = ch8 -> opcode;
+    uint8_t x;
+    uint8_t kk;
+    uint8_t y;
     switch (opcode >> 12) {
         // there is only two instructions for 0xxx
         case 0x0000:
             if (opcode == 0x00E0) {
-                ;
+                for (int i = 0; i < GRAPHIC_SIZE; i++) {
+                    ch8 -> graphic[i] = 0;
+                }
             } else {
                 // opcode 0x00EE
-                ;
+                ch8 -> SP -= 1;
+                ch8 -> PC = ch8 -> stack[ch8 -> SP];
             }
             break;
         case 0x0001:
+            ch8 -> PC = opcode & 0x0FFF;
             break;
         case 0x0002:
+            ch8 -> stack[ch8 -> SP] = ch8 -> PC;
+            ch8 -> SP += 1;
+            ch8 -> PC = opcode & 0x0FFF;
             break;
         case 0x0003:
+            x = (opcode & 0x0F00) >> 8;
+            kk = opcode & 0x00FF;
+            if (ch8 -> V[x] == kk) {
+                ch8 -> PC += 2;
+            }
+            ch8 -> PC += 2;
             break;
         case 0x0004:
+            x = (opcode & 0x0F00) >> 8;
+            kk = opcode & 0x00FF;
+            if (ch8 -> V[x] != kk) {
+                ch8 -> PC += 2;
+            }
+            ch8 -> PC += 2;
             break;
         case 0x0005:
+            x = (opcode & 0x0F00) >> 8;
+            y = opcode & 0x00F0 >> 4;
+            if (ch8 -> V[x] == ch8 -> V[y]) {
+                ch8 -> PC += 2;
+            }
+            ch8 -> PC += 2;
             break;
         case 0x0006:
+            x = (opcode & 0x0F00) >> 8;
+            uint8_t kk = opcode & 0x00FF;
+            ch8 -> V[x] = kk;
+            ch8 -> PC += 2;
             break;
         case 0x0007:
             break;
