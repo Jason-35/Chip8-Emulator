@@ -232,34 +232,67 @@ void emulateCycle(Chip8 *ch8) {
             ch8 -> PC += 2;
             break;
         case 0x000E:
+            x = (opcode & 0x0F00) >> 8;
             if ((opcode & 0x000F) == 0x000E) {
-                ;
+                if (ch8 -> key[ch8 -> V[x]] == 1) {
+                    ch8 -> PC += 2;
+                }
             } else {
                 // 0xExA1
-                ;
+                if (ch8 -> key[ch8 -> V[x]] != 1) {
+                    ch8 -> PC += 2;
+                }
+                
             }
+            ch8 -> PC += 2;
             break;
         case 0x000F:
+            x = (opcode & 0x0F00) >> 8;
             switch (opcode & 0x00FF) {
                 case 0x0007:
+                    ch8 -> V[x] = ch8 -> delay;
                     break;
                 case 0x000A:
+                    uint8_t key_pressed = 0;                
+                    while (1) {
+                        for (int i = 0; i < KEY_SIZE; i++) {
+                            if (ch8 -> key[i] != 0) {
+                                ch8 -> V[x] = i;
+                                break;
+                            }
+                        }
+                    }
                     break;
                 case 0x0015:
+                    ch8 -> delay = ch8 -> V[x];
                     break;
                 case 0x0018:
+                    ch8 -> sound = ch8 -> V[x];
                     break;
                 case 0x001E:
+                    ch8 -> I += ch8 -> V[x];
                     break;
                 case 0x0029:
+                    ch8 -> I = 5 * ch8 -> V[x];
                     break;
                 case 0x0033:
+                    uint8_t num = ch8 -> V[x];
+                    ch8 -> memory[ch8 -> I] = num / 100;
+                    ch8 -> memory[ch8 -> I + 1] = (num / 10) % 10;
+                    ch8 -> memory[ch8 -> I + 2] = num % 10;
                     break;
                 case 0x0055:
+                    for (int i = 0; i <= x; i++) {
+                        ch8 -> memory[ch8 -> I + i] = ch8 -> V[i];
+                    }
                     break;
                 case 0x0065:
+                    for (int i = 0; i <= x; i++) {
+                        ch8 -> V[i] = ch8 -> memory[ch8 -> I + i];
+                    }
                     break;
             };
+            ch8 -> PC += 2;
             break; 
     };
     // execute opcode
