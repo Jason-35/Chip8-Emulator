@@ -254,14 +254,14 @@ void emulateCycle(Chip8 *ch8) {
                     break;
                 case 0x000A:
                     uint8_t key_pressed = 0;                
-                    while (1) {
-                        for (int i = 0; i < KEY_SIZE; i++) {
+                    for (int i = 0; i < KEY_SIZE; i++) {
                             if (ch8 -> key[i] != 0) {
                                 ch8 -> V[x] = i;
                                 break;
                             }
-                        }
                     }
+                    if (!key_pressed)
+                        return;
                     break;
                 case 0x0015:
                     ch8 -> delay = ch8 -> V[x];
