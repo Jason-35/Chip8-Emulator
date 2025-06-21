@@ -183,14 +183,53 @@ void emulateCycle(Chip8 *ch8) {
             ch8 -> PC += 2;
             break;
         case 0x0009:
+            if (ch8 -> V[x] != ch8 -> V[y]) {
+                ch8 -> PC += 2;
+            }
+            ch8 -> PC +=2;
             break;
         case 0x000A:
+            ch8 -> I = opcode & 0x0FFF;
+            ch8 -> PC += 2;
             break;
         case 0x000B:
+            ch8 -> PC = ch8 -> V[0] + (opcode & 0x0FFF);
             break;
         case 0x000C:
+            x = (opcode & 0x0F00) >> 8;
+            kk = opcode & 0x00FF;
+            ch8 -> V[x] = (rand() % 256) & kk;
+            ch8 -> PC += 2;
             break;
         case 0x000D:
+            ch8 -> V[0x000F] = 0;
+            x = (opcode & 0x0F00) >> 8;
+            y = (opcode & 0x00F0) >> 4;
+            uint8_t n = opcode & 0x000F;
+            uint8_t Vx = ch8 -> V[x];
+            uint8_t Vy = ch8 -> V[y];
+            
+            for (int y1; y1 < n; y1++) {
+                uint8_t mask = 0x80;
+                uint8_t pixel = ch8 -> memory[ch8 -> I + y1];
+                for (int x1; x1 < 8; x1++) {
+
+                    uint8_t tx = (x1 + Vx) % 64;                
+                    uint8_t ty = (y1 + Vy) % 32;
+
+                    uint16_t index = tx + ty * 64;
+
+                    // pixel & mask >> x1 is used so that the left most significant bit is shifted 1 bit at a time until the end
+                    // this checks if the graphic at index is 1 and if the pixel shift is greater than 0 because it can only be 0 or greater than 0 which indicate draw
+                    mask >> x1;
+                    if ((pixel & mask) && ch8 -> graphic[index]) {
+                        ch8 -> V[0x000F] = 1;
+                    }
+                    // regardless of collision we draw
+                    ch8 -> graphic[index] ^= (pixel & mask) ? 1 : 0; 
+                }
+            }
+            ch8 -> PC += 2;
             break;
         case 0x000E:
             if ((opcode & 0x000F) == 0x000E) {
