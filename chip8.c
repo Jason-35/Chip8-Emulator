@@ -297,6 +297,13 @@ void emulateCycle(Chip8 *ch8) {
     };
     // execute opcode
     // update timer
+    if (ch8 -> delay > 0) {
+        ch8 -> delay--;
+    }
+
+    if (ch8 -> sound > 0) {
+        ch8 -> sound--;
+    }
 
 }
 
