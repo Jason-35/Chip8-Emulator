@@ -22,6 +22,7 @@ const double render_per_second = 1000 / frame_per_second;
 
 static SDL_AudioStream *stream = NULL;
 static int current_sine_sample = 0;
+uint8_t pause = 0;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     
@@ -64,58 +65,59 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
+    if (!pause) {
+        const int minimum_audio = (8000 * sizeof (float)) / 2;
+        Uint32 current_cycle_time = SDL_GetTicks();
+        if ((current_cycle_time - last_timer_cycle) >= (1000 / 60) ) {
+            if (cpu.delay > 0) {
+                cpu.delay--;
+            }
 
-    const int minimum_audio = (8000 * sizeof (float)) / 2;
-    Uint32 current_cycle_time = SDL_GetTicks();
-    if ((current_cycle_time - last_timer_cycle) >= (1000 / 60) ) {
-        if (cpu.delay > 0) {
-            cpu.delay--;
-        }
+            if (cpu.sound > 0) {
+                cpu.sound--;
+                if (SDL_GetAudioStreamQueued(stream) < minimum_audio) {
+                    static float samples[512];  
 
-        if (cpu.sound > 0) {
-            cpu.sound--;
-            if (SDL_GetAudioStreamQueued(stream) < minimum_audio) {
-                static float samples[512];  
+                    for (int i = 0; i < SDL_arraysize(samples); i++) {
+                        const int freq = 440;
+                        const float phase = current_sine_sample * freq / 8000.0f;
+                        samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
+                        current_sine_sample++;
+                    }
 
-                for (int i = 0; i < SDL_arraysize(samples); i++) {
-                    const int freq = 440;
-                    const float phase = current_sine_sample * freq / 8000.0f;
-                    samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
-                    current_sine_sample++;
+                    current_sine_sample %= 8000;
+
+                    SDL_PutAudioStreamData(stream, samples, sizeof (samples));
                 }
-
-                current_sine_sample %= 8000;
-
-                SDL_PutAudioStreamData(stream, samples, sizeof (samples));
             }
         }
-    }
- 
-    if ((current_cycle_time - last_cycle_time) >= cycle_per_second) {
-        emulateCycle(&cpu);
-        last_cycle_time = current_cycle_time;
-    }
-   
-    SDL_FRect r;
-    r.w = ASPECT;
-    r.h = ASPECT;
-    // draw bg
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        // draw pixel
-    if ((current_cycle_time - last_render_cycle_time) >= render_per_second) {
-        SDL_RenderClear(renderer);
-        for (int i = 0; i < GRAPHIC_SIZE; i++) {
-            if (cpu.graphic[i] == 1) {
-                r.x = (i % 64) * ASPECT;
-                r.y = (i / 64) * ASPECT;
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                SDL_RenderFillRect(renderer, &r);
-            }
+     
+        if ((current_cycle_time - last_cycle_time) >= cycle_per_second) {
+            emulateCycle(&cpu);
+            last_cycle_time = current_cycle_time;
         }
-       // -----
-        // render everything
-        SDL_RenderPresent(renderer);
-        last_render_cycle_time = current_cycle_time;
+       
+        SDL_FRect r;
+        r.w = ASPECT;
+        r.h = ASPECT;
+        // draw bg
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            // draw pixel
+        if ((current_cycle_time - last_render_cycle_time) >= render_per_second) {
+            SDL_RenderClear(renderer);
+            for (int i = 0; i < GRAPHIC_SIZE; i++) {
+                if (cpu.graphic[i] == 1) {
+                    r.x = (i % 64) * ASPECT;
+                    r.y = (i / 64) * ASPECT;
+                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                    SDL_RenderFillRect(renderer, &r);
+                }
+            }
+           // -----
+            // render everything
+            SDL_RenderPresent(renderer);
+            last_render_cycle_time = current_cycle_time;
+        }
     }
     SDL_Delay(1);
     
@@ -128,8 +130,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
        
     if ((event -> type == SDL_EVENT_KEY_DOWN)) {
         switch(event -> key.scancode) {
-            case SDL_SCANCODE_P:
+            case SDL_SCANCODE_ESCAPE:
                 return SDL_APP_SUCCESS;
+            case SDL_SCANCODE_P:
+                pause ^= 1;
             case SDL_SCANCODE_1:
                 cpu.key[0] = 1;
                 break;
