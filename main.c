@@ -14,15 +14,24 @@ SDL_Renderer *renderer = NULL;
 Chip8 cpu;
 Uint32 last_cycle_time;
 Uint32 last_render_cycle_time;
+Uint32 last_timer_cycle;
 const int instruction_per_second = 750;
 const double cycle_per_second = 1000/instruction_per_second;
 const int frame_per_second = 60;
 const double render_per_second = 1000 / frame_per_second;
 
+static SDL_AudioStream *stream = NULL;
+static int current_sine_sample = 0;
+
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     
     if (argc == 1) {
         printf("rom file missing\n");
+        return SDL_APP_FAILURE;
+    }
+
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
+        SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
    
@@ -33,16 +42,55 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         return SDL_APP_FAILURE;   
     }
 
+    SDL_AudioSpec spec;
+    
+    spec.channels = 1;
+    spec.format = SDL_AUDIO_F32;
+    spec.freq = 8000;
+    stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
+    if (!stream) {
+        SDL_Log("Couldn't create audio stream: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
+    /* SDL_OpenAudioDeviceStream starts the device paused. You have to tell it to start! */
+    SDL_ResumeAudioStreamDevice(stream);
+
     last_cycle_time = SDL_GetTicks();
     last_render_cycle_time = SDL_GetTicks();
+    last_timer_cycle = SDL_GetTicks();
     return SDL_APP_CONTINUE;
 }
 
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
-    
-    Uint32 current_cycle_time = SDL_GetTicks();
 
+    const int minimum_audio = (8000 * sizeof (float)) / 2;
+    Uint32 current_cycle_time = SDL_GetTicks();
+    if ((current_cycle_time - last_timer_cycle) >= (1000 / 60) ) {
+        if (cpu.delay > 0) {
+            cpu.delay--;
+        }
+
+        if (cpu.sound > 0) {
+            cpu.sound--;
+            if (SDL_GetAudioStreamQueued(stream) < minimum_audio) {
+                static float samples[512];  
+
+                for (int i = 0; i < SDL_arraysize(samples); i++) {
+                    const int freq = 440;
+                    const float phase = current_sine_sample * freq / 8000.0f;
+                    samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
+                    current_sine_sample++;
+                }
+
+                current_sine_sample %= 8000;
+
+                SDL_PutAudioStreamData(stream, samples, sizeof (samples));
+            }
+        }
+    }
+ 
     if ((current_cycle_time - last_cycle_time) >= cycle_per_second) {
         emulateCycle(&cpu);
         last_cycle_time = current_cycle_time;
