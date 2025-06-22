@@ -202,10 +202,14 @@ void emulateCycle(Chip8 *ch8) {
             ch8 -> PC += 2;
             break;
         case 0x0009:
+            x = (opcode & 0x0F00) >> 8;
+            y = (opcode & 0x00F0) >> 4;
             if (ch8 -> V[x] != ch8 -> V[y]) {
-                ch8 -> PC += 2;
+                ch8 -> PC += 4;
+            } else {
+                ch8 -> PC +=2;
             }
-            ch8 -> PC +=2;
+            
             break;
         case 0x000A:
             ch8 -> I = opcode & 0x0FFF;
