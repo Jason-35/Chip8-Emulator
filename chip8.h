@@ -9,7 +9,7 @@
 #define KEY_SIZE 16
 
 typedef struct {
-    uint8_t opcode;
+    uint16_t opcode;
     uint8_t memory[MEM_SIZE];
     uint8_t V[GENERAL_REG]; // The VF register should not be used by any program, as it is used as a flag by some instructions.
     uint16_t I; // This register is generally used to store memory addresses, so only the lowest (rightmost) 12 bits are usually used.
@@ -24,5 +24,6 @@ typedef struct {
 
 Chip8 initalize_chip8();
 void emulateCycle(Chip8 *ch8);
+void load_rom(Chip8 * ch8, char* file);
 
 #endif

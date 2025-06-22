@@ -56,21 +56,39 @@ Chip8 initalize_chip8() {
     return ch8;     
 }
 
+void load_rom(Chip8 * ch8, char* file) {
+    FILE *fptr = fopen(file, "rb");
+    if (!fptr) {
+        perror("fopen error \n");
+        exit(1);
+    }
 
+    unsigned char buffer[4096];
+
+    fseek(fptr, 0, SEEK_END);
+    long rom_size = ftell(fptr);
+    rewind(fptr);
+
+    size_t read = fread(buffer,sizeof(buffer),1,fptr); 
+    fclose(fptr);
+
+    for (size_t i = 0; i < rom_size; i++) {
+        ch8 -> memory[0x200 + i] = buffer[i];
+    }
+
+}
 
 // void for now change if needed.
 void emulateCycle(Chip8 *ch8) {
     // fetch opcode
     ch8->opcode = ch8->memory[ch8->PC] << 8 | ch8->memory[ch8->PC + 1];
-    ch8->PC += 2;
-
     // decode opcode
     // opcode >> 12 gets the first 4 bits out of the 16 bit
-    // 0x1 is actually 0x0001.
-    uint8_t opcode = ch8 -> opcode;
+    uint16_t opcode = ch8 -> opcode;
     uint8_t x;
     uint8_t kk;
     uint8_t y;
+
     switch (opcode >> 12) {
         // there is only two instructions for 0xxx
         case 0x0000:
@@ -83,6 +101,7 @@ void emulateCycle(Chip8 *ch8) {
                 ch8 -> SP -= 1;
                 ch8 -> PC = ch8 -> stack[ch8 -> SP];
             }
+            ch8 -> PC += 2;
             break;
         case 0x0001:
             ch8 -> PC = opcode & 0x0FFF;
@@ -110,7 +129,7 @@ void emulateCycle(Chip8 *ch8) {
             break;
         case 0x0005:
             x = (opcode & 0x0F00) >> 8;
-            y = opcode & 0x00F0 >> 4;
+            y = (opcode & 0x00F0) >> 4;
             if (ch8 -> V[x] == ch8 -> V[y]) {
                 ch8 -> PC += 2;
             }
@@ -118,7 +137,7 @@ void emulateCycle(Chip8 *ch8) {
             break;
         case 0x0006:
             x = (opcode & 0x0F00) >> 8;
-            uint8_t kk = opcode & 0x00FF;
+            kk = opcode & 0x00FF;
             ch8 -> V[x] = kk;
             ch8 -> PC += 2;
             break;
@@ -132,7 +151,7 @@ void emulateCycle(Chip8 *ch8) {
             // want the 4th instruction so mask the first 12 bits
             uint8_t instr_4 = opcode & 0x000F;
             x = (opcode & 0x0F00) >> 8;
-            y = opcode & 0x00F0 >> 4;
+            y = (opcode & 0x00F0) >> 4;
             switch (instr_4) {
                 case 0x0000:
                     ch8 -> V[x] = ch8 -> V[y];
@@ -209,42 +228,44 @@ void emulateCycle(Chip8 *ch8) {
             uint8_t Vx = ch8 -> V[x];
             uint8_t Vy = ch8 -> V[y];
             
-            for (int y1; y1 < n; y1++) {
+            for (int y1 = 0; y1 < n; y1++) {
                 uint8_t mask = 0x80;
                 uint8_t pixel = ch8 -> memory[ch8 -> I + y1];
-                for (int x1; x1 < 8; x1++) {
+                for (int x1 = 0; x1 < 8; x1++) {
 
                     uint8_t tx = (x1 + Vx) % 64;                
                     uint8_t ty = (y1 + Vy) % 32;
 
                     uint16_t index = tx + ty * 64;
 
-                    // pixel & mask >> x1 is used so that the left most significant bit is shifted 1 bit at a time until the end
-                    // this checks if the graphic at index is 1 and if the pixel shift is greater than 0 because it can only be 0 or greater than 0 which indicate draw
-                    mask >> x1;
-                    if ((pixel & mask) && ch8 -> graphic[index]) {
+                    if (((pixel & (mask >> x1)) != 0) && ch8 -> graphic[index]) {
                         ch8 -> V[0x000F] = 1;
                     }
-                    // regardless of collision we draw
-                    ch8 -> graphic[index] ^= (pixel & mask) ? 1 : 0; 
+                    ch8 -> graphic[index] ^= (pixel & (mask >> x1)) ? 1 : 0; 
                 }
             }
             ch8 -> PC += 2;
             break;
         case 0x000E:
             x = (opcode & 0x0F00) >> 8;
-            if ((opcode & 0x000F) == 0x000E) {
+            if ((opcode & 0x00FF) == 0x009E) {
                 if (ch8 -> key[ch8 -> V[x]] == 1) {
+                    ch8 -> PC += 4;
+                } else {
                     ch8 -> PC += 2;
                 }
-            } else {
+            }
+            else if ((opcode & 0x00FF) == 0x00A1){
                 // 0xExA1
                 if (ch8 -> key[ch8 -> V[x]] != 1) {
+                    ch8 -> PC += 4;
+                } else {
                     ch8 -> PC += 2;
                 }
                 
+            } else {
+                ch8 -> PC += 2;
             }
-            ch8 -> PC += 2;
             break;
         case 0x000F:
             x = (opcode & 0x0F00) >> 8;
@@ -257,6 +278,7 @@ void emulateCycle(Chip8 *ch8) {
                     for (int i = 0; i < KEY_SIZE; i++) {
                             if (ch8 -> key[i] != 0) {
                                 ch8 -> V[x] = i;
+                                key_pressed = 1;
                                 break;
                             }
                     }
