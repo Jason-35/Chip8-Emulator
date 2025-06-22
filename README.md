@@ -17,4 +17,3 @@ cmake --build <build name>
 run ./main.c "<path-to-chip-8-rom>"
 
 
-![image](./image/chip8_pong.png)
