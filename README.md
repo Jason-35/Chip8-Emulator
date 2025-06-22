@@ -10,10 +10,11 @@ Sources: (https://github.com/corax89/chip8-test-rom), (https://github.com/Skosul
 Chip8-roms - A collection of sample CHIP-8 ROMs for testing. (https://github.com/kripod/chip8-roms)
 
 ## ▶️ To run the emulator locally
-clone <repo>
-cd <repo>
-cmake -S . -B <build name>
-cmake --build <build name>
-run ./main.c "<path-to-chip-8-rom>"
+clone \<repo>\
+cd \<repo>\
+cmake -S . -B \<build name>\
+cmake --build \<build name>\
+run ./main.c "\<path-to-chip-8-rom>"
 
 
+![image](./image/chip8_pong.png)
